@@ -1,197 +1,95 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Data;
+using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Calculator
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow
     {
-        private double arg1 = 0, arg2 = 0;
-        private double result;
-        private string resultStr = "";
-        private char opt;
+        private const string ErrorMessage = "Invalid Expression";
+        private string _result;
+
         public MainWindow()
         {
             InitializeComponent();
-            screen.Text = "";
         }
 
-        private void btn1_Click(object sender, RoutedEventArgs e)
+        /*
+         * Input Btns
+         */
+
+        private void Btn_Click(object sender, RoutedEventArgs e)
         {
-            screen.Text += "1";
+            Button curButton = sender as Button;
+            Screen.Text += curButton.Content.ToString();
         }
 
-        private void btn2_Click(object sender, RoutedEventArgs e)
-        {
-            screen.Text += "2";
-        }
-
-        private void btn3_Click(object sender, RoutedEventArgs e)
-        {
-            screen.Text += "3";
-        }
-
-        private void btn4_Click(object sender, RoutedEventArgs e)
-        {
-            screen.Text += "4";
-        }
-
-        private void btn5_Click(object sender, RoutedEventArgs e)
-        {
-            screen.Text += "5";
-        }
-
-        private void btn6_Click(object sender, RoutedEventArgs e)
-        {
-            screen.Text += "6";
-        }
-
-        private void btn7_Click(object sender, RoutedEventArgs e)
-        {
-            screen.Text += "7";
-        }
-
-        private void btn8_Click(object sender, RoutedEventArgs e)
-        {
-            screen.Text += "8";
-        }
-
-        private void btn9_Click(object sender, RoutedEventArgs e)
-        {
-            screen.Text += "9";
-        }
-
-        private void btn0_Click(object sender, RoutedEventArgs e)
-        {
-            screen.Text += "0";
-        }
-
+        /*
+         * Get Result
+         */
 
         private void resultBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (opt == '+')
+            bool flag = true;
+            try
             {
-                arg2 = Convert.ToDouble(screen.Text);
-                result = arg1 + arg2;
-                resultStr = result.ToString();
-                screen.Text = resultStr;
+                DataTable table = new DataTable();
+                _result = table.Compute(Screen.Text, string.Empty).ToString();
             }
-            else if (opt == '-')
+            catch (Exception)
             {
-                arg2 = Convert.ToDouble(screen.Text);
-                result = arg1 - arg2;
-                resultStr = result.ToString();
-                screen.Text = resultStr;
+                if (Screen.Text.Contains("^"))
+                    flag = GetResult('^');
+                else if (Screen.Text.Contains("√"))
+                    flag = GetResult('√');
+                else
+                    flag = false;
             }
-            else if (opt == '/')
+            finally
             {
-                arg2 = Convert.ToDouble(screen.Text);
-                result = arg1 / arg2;
-                resultStr = result.ToString();
-                screen.Text = resultStr;
+                Screen.Text = flag ? _result : ErrorMessage;
             }
-            else if (opt == '*')
-            {
-                arg2 = Convert.ToDouble(screen.Text);
-                result = arg1 * arg2;
-                resultStr = result.ToString();
-                screen.Text = resultStr;
-            }
-            else if (opt == '^')
-            {
-                arg2 = Convert.ToDouble(screen.Text);
-                result = Math.Pow(arg1, arg2);
-                resultStr = result.ToString();
-                screen.Text = resultStr;
-            }
-            else
-                screen.Text = "No operator";
-            arg1 = 0;
-            arg2 = 0;
-            result = 0;
-            resultStr = "";
         }
 
-        private void addBtn_Click(object sender, RoutedEventArgs e)
+        private bool GetResult(char opt)
         {
-            arg1 += Convert.ToDouble(screen.Text);
-            opt = '+';
-            screen.Text = "";
+            if (Screen.Text.Count(_ => _ == opt) != 1) return false;
+            _result =
+               (opt == '^'
+                    ? Math.Pow(GetArg(opt, firstArg: true), GetArg(opt))
+                    : Math.Sqrt(GetArg(opt)) // Expected input is √9 not 9√
+                        ).ToString(CultureInfo.InvariantCulture);
+            return true;
         }
 
-        private void subBtn_Click(object sender, RoutedEventArgs e)
+        private double GetArg(char opt, bool firstArg = false)
         {
-            arg1 -= Convert.ToDouble(screen.Text);
-            opt = '-';
-            screen.Text = "";
-        }           
-
-        private void divBtn_Click(object sender, RoutedEventArgs e)
-        {
-            if (arg1 == 0)
-                arg1 = Convert.ToDouble(screen.Text);
-            else
-                arg1 /= Convert.ToDouble(screen.Text);
-            opt = '/';
-            screen.Text = "";
+            int optIndex = Screen.Text.IndexOf(opt);
+            return Convert.ToDouble(
+                firstArg
+                    ? Screen.Text.Substring(0, optIndex)
+                    : Screen.Text.Substring(optIndex + 1));
         }
 
-        private void mulBtn_Click(object sender, RoutedEventArgs e)
-        {
-            if (arg1 == 0)
-                arg1 = Convert.ToDouble(screen.Text);
-            else
-                arg1 *= Convert.ToDouble(screen.Text);
-            opt = '*';
-            screen.Text = "";
-        }
-        private void pointBtn_Click(object sender, RoutedEventArgs e)
-        {
-            screen.Text += ".";
-        }
+        /*
+         * Backspace Btn
+         * Clear Btn
+         */
 
         private void rmvBtn_Click(object sender, RoutedEventArgs e)
         {
-            screen.Text = screen.Text.Substring(0, screen.Text.Length - 1);
+            Screen.Text = Screen.Text.Substring(0, Screen.Text.Length - 1);
         }
 
         private void clearBtn_Click(object sender, RoutedEventArgs e)
         {
-            screen.Text = "";
-            arg1 = 0;
-            arg2 = 0;
-            result = 0;
-            resultStr = "";
-        }
-
-        private void powBtn_Click(object sender, RoutedEventArgs e)
-        {
-            arg1 = Convert.ToDouble(screen.Text);
-            opt = '^';
-            screen.Text = "";
-        }
-
-        private void sqrtBtn_Click(object sender, RoutedEventArgs e)
-        {
-            arg1 = Convert.ToDouble(screen.Text);
-            result = Math.Sqrt(arg1);
-            resultStr = result.ToString();
-            screen.Text = resultStr;
-
+            Screen.Text = "";
         }
 
     }
