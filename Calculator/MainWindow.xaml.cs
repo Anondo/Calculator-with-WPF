@@ -53,7 +53,14 @@ namespace Calculator
             }
             finally
             {
-                Screen.Text = flag ? _result : ErrorMessage;
+                if(flag)
+                {
+                    Screen.Text = _result;
+                }
+                else
+                {
+                    Screen.Text = ErrorMessage;
+                }
             }
         }
 
